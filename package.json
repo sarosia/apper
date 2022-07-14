@@ -24,11 +24,11 @@
   },
   "homepage": "https://github.com/sarosia/apper#readme",
   "dependencies": {
+    "@google-cloud/logging-winston": "^5.1.1",
     "express": "^4.17.1",
     "rc": "^1.2.8",
     "uikit": "^3.7.0",
-    "winston": "^3.3.3",
-    "winston-daily-rotate-file": "^4.5.5"
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
