@@ -18,7 +18,7 @@ describe('Apper', () => {
 
   it('Config', async () => {
     const apper = new Apper('testing', () => {}, {
-      'config1': 'value1'
+      'config1': 'value1',
     });
     apper.get('/testing', (context, req, res) => {
       res.send(JSON.stringify(context.config));
@@ -31,7 +31,7 @@ describe('Apper', () => {
 
   it('Logger', async () => {
     const apper = new Apper('testing', () => {}, {
-      'config1': 'value1'
+      'config1': 'value1',
     });
     apper.get('/testing', (context, req, res) => {
       context.logger.info('Testing');
