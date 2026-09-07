@@ -1,0 +1,64 @@
+/* Apper Auth Components - User Profile Badge & Button Styles */
+.user-profile-badge {
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.user-email-text {
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: #334155;
+  margin-right: 10px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-logout-btn {
+  color: #ef4444;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  text-decoration: none !important;
+  transition: color 0.15s ease-in-out;
+}
+
+.user-logout-btn:hover {
+  color: #b91c1c;
+}
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 44px;
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: #3c4043;
+  text-decoration: none !important;
+  transition: background-color .2s, box-shadow .2s;
+  cursor: pointer;
+}
+
+.google-btn:hover {
+  background-color: #f8fafd;
+  box-shadow: 0 1px 3px rgba(60,64,67,.15);
+  color: #202124;
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+}
