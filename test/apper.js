@@ -97,4 +97,28 @@ describe('Apper', () => {
         await apper.start();
         expect(appHookCalled).to.be.true;
       });
+
+  it('Rotated log file writes in human readable format with context',
+      async () => {
+        const Logger = require('../lib/logger');
+        const path = require('path');
+        const os = require('os');
+        const fs = require('fs');
+
+        const testDir = path.join(os.tmpdir(),
+            'apper-format-test-' + Date.now());
+        const logger = new Logger('formattest', {logDir: testDir});
+        logger.info('Hello human readable', {detail: 'ctx123'});
+
+        // Allow stream to flush to file
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        logger.close();
+
+        const files = fs.readdirSync(testDir).filter((f) => f.endsWith('.log'));
+        expect(files.length).to.be.greaterThan(0);
+        const content = fs.readFileSync(path.join(testDir, files[0]), 'utf-8');
+        expect(content)
+            .to.include('info: Hello human readable {"detail":"ctx123"}');
+        expect(content.trim().startsWith('{')).to.be.false;
+      });
 });
