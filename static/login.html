@@ -75,12 +75,12 @@
       return div.innerHTML;
     }
 
-    if (error === 'unauthorized_email') {
+    if (error === 'unauthorized' || error === 'unauthorized_email') {
       alertContainer.innerHTML = `
         <div class="uk-alert-danger uk-margin-small-bottom" uk-alert>
           <a class="uk-alert-close" uk-close></a>
           <p class="uk-text-small">
-            <strong>Access Denied:</strong> ${email ? '<code>' + escapeHtml(email) + '</code>' : 'Your email'} is not authorized to access this service.
+            <strong>Unauthorized</strong>
           </p>
         </div>
       `;

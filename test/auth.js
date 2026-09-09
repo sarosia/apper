@@ -103,11 +103,11 @@ describe('Apper Auth', () => {
       expect(resJs.text).to.include('ApperAuth');
     });
 
-    it('provides /auth/config endpoint', async () => {
+    it('provides /auth/config without allowedEmails', async () => {
       const res = await chai.request(expressApp).get('/auth/config');
       expect(res).to.have.status(200);
       expect(res.body.enabled).to.be.true;
-      expect(res.body.allowedEmails).to.include('authorized@example.com');
+      expect(res.body.allowedEmails).to.be.undefined;
     });
 
     it('redirects unauthenticated browser request to /login', async () => {
