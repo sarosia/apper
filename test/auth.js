@@ -72,12 +72,17 @@ describe('Apper Auth', () => {
               enabled: true,
               allowedEmails: ['authorized@example.com'],
               sessionSecret: 'test-key',
+              publicRoutes: ['/api/public'],
             },
           },
       );
 
       apper.get('/api/protected', (context, req, res) => {
         res.json({status: 'OK', user: req.user});
+      });
+
+      apper.get('/api/public', (context, req, res) => {
+        res.json({status: 'OK', public: true});
       });
 
       expressApp = apper.getExpress();
@@ -159,6 +164,16 @@ describe('Apper Auth', () => {
       expect(resLogout.header.location).to.equal('/login');
       expect(resLogout.header['set-cookie'][0])
           .to.include('authtest_session=;');
+    });
+
+    it('allows access to public routes without session cookie', async () => {
+      const res = await chai
+          .request(expressApp)
+          .get('/api/public');
+
+      expect(res).to.have.status(200);
+      expect(res.body.status).to.equal('OK');
+      expect(res.body.public).to.be.true;
     });
   });
 });
