@@ -74,4 +74,30 @@ describe('Apper', () => {
     });
     expect(apper.getLogger().logDir).to.equal(testDir);
   });
+
+  it('runs onStart hooks on context and app during start()', async () => {
+    let ctxHookCalled = false;
+    let appHookCalled = false;
+
+    const apper = new Apper('teststarthooks', (ctx) => {
+      ctx.onStart((context) => {
+        expect(context).to.equal(ctx);
+        ctxHookCalled = true;
+      });
+    });
+
+    apper.onStart((context) => {
+      expect(context).to.equal(apper.getContext());
+      appHookCalled = true;
+    });
+
+    // Mock listen to avoid taking a port
+    apper.getExpress().listen = () => ({
+      close: () => {},
+    });
+
+    await apper.start();
+    expect(ctxHookCalled).to.be.true;
+    expect(appHookCalled).to.be.true;
+  });
 });
