@@ -121,4 +121,23 @@ describe('Apper', () => {
             .to.include('info: Hello human readable {"detail":"ctx123"}');
         expect(content.trim().startsWith('{')).to.be.false;
       });
+
+  it('supports post, put, delete, and patch routes with context', async () => {
+    const apper = new Apper('httptest');
+    apper.post('/item', (ctx, req, res) => res.json({method: 'POST'}));
+    apper.put('/item', (ctx, req, res) => res.json({method: 'PUT'}));
+    apper.delete('/item', (ctx, req, res) => res.json({method: 'DELETE'}));
+    apper.patch('/item', (ctx, req, res) => res.json({method: 'PATCH'}));
+
+    const agent = chai.request.agent(apper.getExpress());
+    const postRes = await agent.post('/item');
+    expect(postRes.body.method).to.equal('POST');
+    const putRes = await agent.put('/item');
+    expect(putRes.body.method).to.equal('PUT');
+    const deleteRes = await agent.delete('/item');
+    expect(deleteRes.body.method).to.equal('DELETE');
+    const patchRes = await agent.patch('/item');
+    expect(patchRes.body.method).to.equal('PATCH');
+    await agent.close();
+  });
 });
