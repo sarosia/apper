@@ -42,4 +42,36 @@ describe('Apper', () => {
     expect(res.text).to.equal('OK');
     await agent.close();
   });
+
+  it('Logger supports custom logDir and path resolution', () => {
+    const Logger = require('../lib/logger');
+    const path = require('path');
+    const os = require('os');
+    const fs = require('fs');
+
+    expect(Logger.resolveLogDir('~/my-logs')).to.equal(
+        path.join(os.homedir(), 'my-logs'));
+    expect(Logger.resolveLogDir('~')).to.equal(os.homedir());
+    expect(Logger.resolveLogDir(null)).to.be.null;
+
+    const testDir = path.join(os.tmpdir(), 'apper-test-logs-' + Date.now());
+    const logger = new Logger('testlogdir', {logDir: testDir});
+    expect(logger.logDir).to.equal(testDir);
+    expect(fs.existsSync(testDir)).to.be.true;
+    logger.close();
+  });
+
+  it('Apper passes logDir config to logger', () => {
+    const path = require('path');
+    const os = require('os');
+
+    const testDir = path.join(os.tmpdir(), 'apper-app-logs-' + Date.now());
+    const apper = new Apper('testapplogdir', () => {}, {
+      logDir: testDir,
+    });
+    apper.get('/check', (context, req, res) => {
+      res.send('OK');
+    });
+    expect(apper.getLogger().logDir).to.equal(testDir);
+  });
 });
