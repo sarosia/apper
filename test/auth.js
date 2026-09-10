@@ -10,6 +10,8 @@ describe('Apper Auth', () => {
     it('initializes defaults and checks whitelist', () => {
       const auth = new AuthManager('myapp', {
         auth: {
+          clientId: 'test-id',
+          clientSecret: 'test-secret',
           allowedEmails: ['alice@example.com', 'BOB@EXAMPLE.COM'],
         },
       });
@@ -19,6 +21,13 @@ describe('Apper Auth', () => {
       expect(auth.isAllowed('alice@example.com')).to.be.true;
       expect(auth.isAllowed('bob@example.com')).to.be.true;
       expect(auth.isAllowed('eve@example.com')).to.be.false;
+
+      const unconfigured = new AuthManager('myapp', {
+        auth: {
+          allowedEmails: ['alice@example.com'],
+        },
+      });
+      expect(unconfigured.isEnabled()).to.be.false;
     });
 
     it('creates and verifies session tokens', () => {
@@ -70,6 +79,8 @@ describe('Apper Auth', () => {
           {
             auth: {
               enabled: true,
+              clientId: 'test-client-id',
+              clientSecret: 'test-client-secret',
               allowedEmails: ['authorized@example.com'],
               sessionSecret: 'test-key',
               publicRoutes: ['/api/public'],
@@ -175,5 +186,37 @@ describe('Apper Auth', () => {
       expect(res.body.status).to.equal('OK');
       expect(res.body.public).to.be.true;
     });
+
+    it('does not require auth when oauth credentials are not configured',
+        async () => {
+          const noAuthApper = new Apper('noauth', () => {}, {
+            auth: {
+              enabled: true,
+            },
+          });
+
+          noAuthApper.get('/data', (ctx, req, res) => {
+            res.json({status: 'OK'});
+          });
+
+          const res = await chai
+              .request(noAuthApper.getExpress())
+              .get('/data');
+          expect(res).to.have.status(200);
+          expect(res.body.status).to.equal('OK');
+
+          const resLogin = await chai
+              .request(noAuthApper.getExpress())
+              .get('/login')
+              .redirects(0);
+          expect(resLogin).to.have.status(302);
+          expect(resLogin.header.location).to.equal('/');
+
+          const resMe = await chai
+              .request(noAuthApper.getExpress())
+              .get('/auth/me');
+          expect(resMe).to.have.status(200);
+          expect(resMe.body.authenticated).to.be.false;
+        });
   });
 });
