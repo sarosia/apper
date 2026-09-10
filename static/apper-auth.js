@@ -4,17 +4,15 @@
 (function() {
   function renderBadge(container, user) {
     if (!container || !user) return;
-    const displayName = user.name || user.email;
+    const displayName = user.name || 'User';
     const avatar = user.picture
-      ? `<img src="${user.picture}" alt="${displayName}" class="uk-border-circle" style="width: 24px; height: 24px; margin-right: 8px;" />`
-      : `<span uk-icon="icon: user; ratio: 0.8" style="margin-right: 8px; color: #64748b;"></span>`;
+      ? `<img src="${user.picture}" alt="${displayName}" class="uk-border-circle" style="width: 32px; height: 32px;" />`
+      : `<span uk-icon="icon: user; ratio: 0.8" style="color: #64748b;"></span>`;
 
     container.innerHTML = `
-      <div class="user-profile-badge">
-        ${avatar}
-        <span class="user-email-text" title="${user.email}">${user.email}</span>
-        <a href="/auth/logout" class="user-logout-btn" title="Sign Out">
-          <span uk-icon="icon: sign-out; ratio: 0.8"></span>
+      <div class="user-profile-badge" style="padding: 2px;">
+        <a href="/auth/logout" class="user-logout-btn" title="Sign Out (${displayName})" style="text-decoration:none;">
+          ${avatar}
         </a>
       </div>
     `;
