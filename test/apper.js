@@ -140,4 +140,45 @@ describe('Apper', () => {
     expect(patchRes.body.method).to.equal('PATCH');
     await agent.close();
   });
+
+  it('Apper.resolvePath expands tilde and normalizes paths', () => {
+    const path = require('path');
+    const os = require('os');
+    expect(Apper.resolvePath(null)).to.be.null;
+    expect(Apper.resolvePath('~')).to.equal(os.homedir());
+    expect(Apper.resolvePath('~/foo/bar')).to.equal(
+        path.join(os.homedir(), 'foo', 'bar'));
+    expect(Apper.resolvePath('/absolute/path')).to.equal('/absolute/path');
+  });
+
+  it('configures trust proxy by default and allows overriding', () => {
+    const defaultApp = new Apper('trustproxydefault');
+    expect(defaultApp.getExpress().get('trust proxy')).to.be.true;
+
+    const disabledApp = new Apper('trustproxydisabled', () => {}, {
+      trustProxy: false,
+    });
+    expect(disabledApp.getExpress().get('trust proxy')).to.be.false;
+  });
+
+  it('serves e.js and apper-auth static assets', async () => {
+    const apper = new Apper('teststatics', () => {}, {
+      auth: {enabled: false},
+    });
+    const agent = chai.request.agent(apper.getExpress());
+
+    const eRes = await agent.get('/e.js').buffer();
+    expect(eRes).to.have.status(200);
+    expect(eRes.text).to.include('function');
+
+    const authJsRes = await agent.get('/apper-auth.js').buffer();
+    expect(authJsRes).to.have.status(200);
+    expect(authJsRes.text).to.include('user-avatar-btn');
+
+    const authCssRes = await agent.get('/apper-auth.css').buffer();
+    expect(authCssRes).to.have.status(200);
+    expect(authCssRes.text).to.include('.user-avatar-btn');
+
+    await agent.close();
+  });
 });

@@ -10,12 +10,15 @@ Apper gets your web applications running in seconds by eliminating boilerplate f
 
 - 🚀 **Zero Boilerplate**: Initialize an Express web app with routing, logging, and configuration in just a few lines.
 - 🔐 **Built-in Google SSO**: Complete OAuth 2.0 OpenID Connect authentication, HMAC-signed session cookies, email whitelist authorization, and auto-redirects.
-- 👤 **Ready-to-use Auth UI**: Pre-packaged `/login` page and `<apper-user-profile>` web component / badge with Google user avatar and sign-out button.
+- 👤 **Ready-to-use Auth UI**: Pre-packaged `/login` page, `<apper-user-profile>` web component, and automatic `#user-profile` dropdown avatar button with sign-out.
+- 📦 **NotableDB Store (`Apper.NotableStore`)**: Out-of-the-box collection CRUD persistence supporting local filesystem or remote NotableDB daemon, automatic ID generation, and seed initialization.
+- 🌐 **Reverse Proxy Ready**: Built-in `trust proxy` enabled by default for seamless HTTPS, Secure cookies, and client IP resolution behind reverse proxies.
+- 🎨 **Bundled UIkit & `@sarosia/e`**: Automatically serves UIkit CSS/JS and `@sarosia/e` (`/e.js`) without manual build steps or static path configuration.
 - 🪵 **Production Logging**: Winston logger with daily rotating JSON log files (`app-%DATE%.log`), custom `logDir` with tilde expansion, and colorized development console output.
 - ⚙️ **Hierarchical Configuration**: Powered by `rc` for seamless merging of defaults, configuration files (`.<appname>rc`), environment variables, and CLI flags.
-- 🎨 **Bundled UIkit**: Automatically serves UIkit CSS and JavaScript assets without manual build steps.
 - 🧩 **Context Architecture**: Injects a shared `Context` holding logger, configuration, and custom application services into every route handler.
 - 🔄 **Lifecycle Hooks**: Register asynchronous startup hooks with `app.onStart((ctx) => ...)`.
+- 📁 **Path Utilities**: `Apper.resolvePath()` for expanding `~` and normalizing cross-platform paths.
 
 ---
 
@@ -100,6 +103,40 @@ app.onStart(async (ctx) => {
 });
 
 app.start();
+```
+
+---
+
+## NotableDB Store (`Apper.NotableStore`)
+
+Apper bundles seamless persistence for JSON collections powered by `@sarosia/notabledb`. It manages local file storage (`~/.<appName>/notabledb.json`) or remote daemon connection (`Client`), ID generation, and seed initialization.
+
+```javascript
+const Apper = require('@sarosia/apper');
+const { NotableStore } = Apper;
+
+// Define a collection store
+class ItemStore extends NotableStore {
+  constructor(options = {}) {
+    super('items', {
+      appName: 'myapp',
+      idField: 'id', // or 'name'
+      ...options,
+    });
+  }
+}
+
+const store = new ItemStore();
+
+// Seed initial items on first run
+await store.init([{ id: 'default', title: 'Default Item' }]);
+
+// Standard CRUD
+const items = await store.list();
+const item = await store.get('default');
+const created = await store.add({ title: 'New Item' });
+const updated = await store.update(created.id, { title: 'Updated Item' });
+await store.remove(created.id);
 ```
 
 ---

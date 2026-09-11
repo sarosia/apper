@@ -2,20 +2,45 @@
  * @sarosia/apper - Client Authentication & User Profile Component
  */
 (function() {
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+  }
+
   function renderBadge(container, user) {
     if (!container || !user) return;
-    const displayName = user.name || 'User';
-    const avatar = user.picture
-      ? `<img src="${user.picture}" alt="${displayName}" class="uk-border-circle" style="width: 32px; height: 32px;" />`
-      : `<span uk-icon="icon: user; ratio: 0.8" style="color: #64748b;"></span>`;
+    const displayName = user.name || user.email || 'User';
+    const initial = (displayName || 'U').charAt(0).toUpperCase();
+    const avatarHtml = user.picture ?
+      `<img src="${escapeHtml(user.picture)}" alt="Profile" class="user-avatar-img" />` :
+      `<div class="user-avatar-fallback">${escapeHtml(initial)}</div>`;
 
     container.innerHTML = `
-      <div class="user-profile-badge" style="padding: 2px;">
-        <a href="/auth/logout" class="user-logout-btn" title="Sign Out (${displayName})" style="text-decoration:none;">
-          ${avatar}
-        </a>
+      <div class="uk-inline user-profile-container">
+        <button class="user-avatar-btn" type="button"
+          aria-label="Account: ${escapeHtml(displayName)}"
+          title="${escapeHtml(displayName)}${user.email ? ` (${escapeHtml(user.email)})` : ''}">
+          ${avatarHtml}
+        </button>
+        <div uk-dropdown="mode: click; pos: bottom-right; offset: 8" class="user-dropdown-card">
+          <a href="/auth/logout" class="uk-button uk-button-small uk-width-1-1 user-dropdown-logout-btn">
+            <span uk-icon="icon: sign-out; ratio: 0.8" class="uk-margin-small-right"></span>Sign Out
+          </a>
+        </div>
       </div>
     `;
+
+    if (window.UIkit && window.UIkit.icon) {
+      const iconEl = container.querySelector('span[uk-icon]');
+      if (iconEl) {
+        window.UIkit.icon(iconEl);
+      }
+    }
   }
 
   async function fetchUser() {
@@ -61,6 +86,8 @@
 
   window.ApperAuth = {
     fetchUser,
-    renderBadge
+    renderBadge,
+    renderUserProfile: renderBadge,
+    escapeHtml,
   };
 })();

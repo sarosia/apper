@@ -24,6 +24,8 @@
   },
   "homepage": "https://github.com/sarosia/apper#readme",
   "dependencies": {
+    "@sarosia/e": "github:sarosia/e",
+    "@sarosia/notabledb": "github:sarosia/notabledb",
     "express": "^4.17.1",
     "googleapis": "^107.0.0",
     "rc": "^1.2.8",
