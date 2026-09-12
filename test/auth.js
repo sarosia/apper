@@ -66,6 +66,47 @@ describe('Apper Auth', () => {
 
       expect(auth.verifySessionToken(`${tamperedPayload}.${sig}`)).to.be.null;
     });
+
+    it('dynamically resolves callbackUrl from proxied request headers', () => {
+      const auth = new AuthManager('myapp', {
+        port: 3000,
+        auth: {
+          clientId: 'test-id',
+          clientSecret: 'test-secret',
+        },
+      });
+
+      // Default fallback without req
+      expect(auth.getCallbackUrl()).to.equal('http://localhost:3000/auth/callback');
+
+      // Proxied request via x-forwarded headers
+      const mockReq = {
+        headers: {
+          'x-forwarded-proto': 'https',
+          'x-forwarded-host': 'announcer.esterity.info',
+        },
+        protocol: 'http',
+        get(header) {
+          return this.headers[header.toLowerCase()];
+        },
+      };
+      expect(auth.getCallbackUrl(mockReq)).to.equal(
+          'https://announcer.esterity.info/auth/callback',
+      );
+
+      // Explicitly configured callbackUrl overrides dynamic detection
+      const customAuth = new AuthManager('myapp', {
+        port: 3000,
+        auth: {
+          clientId: 'test-id',
+          clientSecret: 'test-secret',
+          callbackUrl: 'https://custom.example.com/callback',
+        },
+      });
+      expect(customAuth.getCallbackUrl(mockReq)).to.equal(
+          'https://custom.example.com/callback',
+      );
+    });
   });
 
   describe('Apper Auth Integration', () => {
