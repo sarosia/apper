@@ -161,7 +161,7 @@ describe('Apper', () => {
     expect(disabledApp.getExpress().get('trust proxy')).to.be.false;
   });
 
-  it('serves e.js and apper-auth static assets', async () => {
+  it('serves e.js and apper-auth and apper-ui static assets', async () => {
     const apper = new Apper('teststatics', () => {}, {
       auth: {enabled: false},
     });
@@ -179,6 +179,89 @@ describe('Apper', () => {
     expect(authCssRes).to.have.status(200);
     expect(authCssRes.text).to.include('.user-avatar-btn');
 
+    const uiCssRes = await agent.get('/apper-ui.css').buffer();
+    expect(uiCssRes).to.have.status(200);
+    expect(uiCssRes.text).to.include('.apper-card');
+
+    const uiJsRes = await agent.get('/apper-ui.js').buffer();
+    expect(uiJsRes).to.have.status(200);
+    expect(uiJsRes.text).to.include('formatEventDateTime');
+
     await agent.close();
+  });
+
+  describe('ApperUI Client Utilities', () => {
+    let ui;
+    before(async () => {
+      ui = await import('../static/apper-ui.js');
+    });
+
+    it('escapeHtml escapes dangerous characters', () => {
+      expect(ui.escapeHtml('<b>"hello" & \'world\'</b>')).to.equal(
+          '&lt;b&gt;&quot;hello&quot; &amp; &#039;world&#039;&lt;/b&gt;',
+      );
+      expect(ui.escapeHtml(null)).to.equal('');
+      expect(ui.escapeHtml(undefined)).to.equal('');
+    });
+
+    it('shortenUrlText trims long URLs cleanly', () => {
+      expect(ui.shortenUrlText('https://example.com/short')).to.equal(
+          'https://example.com/short',
+      );
+      expect(
+          ui.shortenUrlText(
+              'https://subdomain.example.com/very/long/path/name/that/exceeds/limit',
+              25,
+          ),
+      ).to.include('...');
+    });
+
+    it('formatTextWithLinks turns URLs into links', () => {
+      const text = 'Check out https://google.com for info.';
+      const res = ui.formatTextWithLinks(text);
+      expect(res).to.include('<a href="https://google.com"');
+      expect(res).to.include('target="_blank"');
+    });
+
+    it('parseDateOnly parses YYYY-MM-DD in local time', () => {
+      const d = ui.parseDateOnly('2026-09-11');
+      expect(d).to.be.an.instanceOf(Date);
+      expect(d.getFullYear()).to.equal(2026);
+      expect(d.getMonth()).to.equal(8); // September is 8
+      expect(d.getDate()).to.equal(11);
+      expect(ui.parseDateOnly(null)).to.be.null;
+    });
+
+    it('formatDate formats short dates', () => {
+      const d = new Date(2026, 8, 11, 10, 0, 0);
+      const str = ui.formatDate(d);
+      expect(str).to.be.a('string');
+      expect(str.length).to.be.greaterThan(0);
+    });
+
+    it('formatEventDateTime formats all-day and timed events', () => {
+      const allDayEvent = {
+        isAllDay: true,
+        startDate: '2026-09-11',
+        endDate: '2026-09-11',
+      };
+      const formattedAllDay = ui.formatEventDateTime(allDayEvent);
+      expect(formattedAllDay).to.be.a('string');
+
+      const timedEvent = {
+        startTime: new Date(2026, 8, 11, 9, 0, 0).toISOString(),
+        endTime: new Date(2026, 8, 11, 10, 0, 0).toISOString(),
+      };
+      const formattedTimed = ui.formatEventDateTime(timedEvent);
+      expect(formattedTimed).to.include('-');
+    });
+
+    it('getTagClass provides deterministic color tags', () => {
+      const class1 = ui.getTagClass('Work');
+      const class2 = ui.getTagClass('Work');
+      expect(class1).to.equal(class2);
+      expect(class1).to.include('source-tag');
+      expect(ui.getTagClass('')).to.equal('source-tag source-tag-default');
+    });
   });
 });
