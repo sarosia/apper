@@ -94,6 +94,34 @@ describe('Apper Auth', () => {
           'https://announcer.esterity.info/auth/callback',
       );
 
+      // Public domain request without x-forwarded-proto defaults to https
+      const publicReqWithoutProto = {
+        headers: {
+          host: 'cal.esterity.info',
+        },
+        protocol: 'http',
+        get(header) {
+          return this.headers[header.toLowerCase()];
+        },
+      };
+      expect(auth.getCallbackUrl(publicReqWithoutProto)).to.equal(
+          'https://cal.esterity.info/auth/callback',
+      );
+
+      // Localhost request without x-forwarded-proto uses req.protocol (http)
+      const localReq = {
+        headers: {
+          host: 'localhost:3000',
+        },
+        protocol: 'http',
+        get(header) {
+          return this.headers[header.toLowerCase()];
+        },
+      };
+      expect(auth.getCallbackUrl(localReq)).to.equal(
+          'http://localhost:3000/auth/callback',
+      );
+
       // Explicitly configured callbackUrl overrides dynamic detection
       const customAuth = new AuthManager('myapp', {
         port: 3000,
