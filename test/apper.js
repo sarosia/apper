@@ -55,10 +55,59 @@ describe('Apper', () => {
     expect(Logger.resolveLogDir(null)).to.be.null;
 
     const testDir = path.join(os.tmpdir(), 'apper-test-logs-' + Date.now());
-    const logger = new Logger('testlogdir', {logDir: testDir});
+    const logger = new Logger('testlogdir', {logDir: testDir, useFile: true});
     expect(logger.logDir).to.equal(testDir);
     expect(fs.existsSync(testDir)).to.be.true;
     logger.close();
+  });
+
+  it('determines console vs file logging based on isTTY and options', () => {
+    const Logger = require('../lib/logger');
+    const {transports} = require('winston');
+
+    // TTY defaults to console logging
+    const ttyLogger = new Logger('ttylogger', {isTTY: true});
+    expect(ttyLogger.isTTY).to.be.true;
+    expect(ttyLogger.useConsole).to.be.true;
+    expect(ttyLogger.useFile).to.be.false;
+    expect(ttyLogger.transports.some((t) => t instanceof transports.Console)).to
+        .be.true;
+    expect(
+        ttyLogger.transports.some(
+            (t) => t instanceof transports.DailyRotateFile,
+        ),
+    ).to.be.false;
+    ttyLogger.close();
+
+    // Non-TTY defaults to file logging
+    const nonTtyLogger = new Logger('nonttylogger', {isTTY: false});
+    expect(nonTtyLogger.isTTY).to.be.false;
+    expect(nonTtyLogger.useConsole).to.be.false;
+    expect(nonTtyLogger.useFile).to.be.true;
+    expect(
+        nonTtyLogger.transports.some(
+            (t) => t instanceof transports.DailyRotateFile,
+        ),
+    ).to.be.true;
+    expect(
+        nonTtyLogger.transports.some((t) => t instanceof transports.Console),
+    ).to.be.false;
+    nonTtyLogger.close();
+
+    // Explicit overrides
+    const bothLogger = new Logger('bothlogger', {transport: 'both'});
+    expect(bothLogger.useConsole).to.be.true;
+    expect(bothLogger.useFile).to.be.true;
+    bothLogger.close();
+
+    const consoleOverride = new Logger('consoleoverride', {
+      isTTY: false,
+      useConsole: true,
+      useFile: false,
+    });
+    expect(consoleOverride.useConsole).to.be.true;
+    expect(consoleOverride.useFile).to.be.false;
+    consoleOverride.close();
   });
 
   it('Apper passes logDir config to logger', () => {
@@ -107,7 +156,10 @@ describe('Apper', () => {
 
         const testDir = path.join(os.tmpdir(),
             'apper-format-test-' + Date.now());
-        const logger = new Logger('formattest', {logDir: testDir});
+        const logger = new Logger('formattest', {
+          logDir: testDir,
+          useFile: true,
+        });
         logger.info('Hello human readable', {detail: 'ctx123'});
 
         // Allow stream to flush to file
