@@ -5,6 +5,7 @@ Apper.Context = require('./lib/context.js');
 Apper.Logger = require('./lib/logger.js');
 Apper.NotableStore = require('./lib/store.js');
 Apper.Store = Apper.NotableStore;
+Apper.lint = require('./lib/lint.js');
 Apper.express = require('express');
 
 module.exports = Apper;

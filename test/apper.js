@@ -316,4 +316,23 @@ describe('Apper', () => {
       expect(ui.getTagClass('')).to.equal('source-tag source-tag-default');
     });
   });
+
+  describe('Apper.lint', () => {
+    it('provides standard Google style rules and flat config', () => {
+      expect(Apper.lint).to.exist;
+      const rules = Apper.lint.getBaseRules();
+      expect(rules['semi']).to.deep.equal(['error', 'always']);
+      expect(rules['no-var']).to.equal('error');
+      expect(rules['require-jsdoc']).to.equal('off');
+
+      const config = Apper.lint.getConfig();
+      expect(Array.isArray(config)).to.be.true;
+      expect(config.length).to.be.greaterThanOrEqual(4);
+    });
+
+    it('run() successfully lints specific target files', async () => {
+      const exitCode = await Apper.lint.run(['lib/lint.js']);
+      expect(exitCode).to.equal(0);
+    });
+  });
 });
