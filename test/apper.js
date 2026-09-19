@@ -239,6 +239,12 @@ describe('Apper', () => {
     expect(uiJsRes).to.have.status(200);
     expect(uiJsRes.text).to.include('formatEventDateTime');
 
+    const uikitCssRes = await agent.get('/css/uikit.min.css').buffer();
+    expect(uikitCssRes).to.have.status(200);
+
+    const uikitJsRes = await agent.get('/js/uikit.min.js').buffer();
+    expect(uikitJsRes).to.have.status(200);
+
     await agent.close();
   });
 
