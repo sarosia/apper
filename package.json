@@ -12,7 +12,7 @@
   "scripts": {
     "lint": "./bin/apper.js lint",
     "lint:fix": "./bin/apper.js lint --fix",
-    "test": "mocha --reporter spec --bail --check-leaks test/"
+    "test": "./bin/apper.js test --bail --check-leaks"
   },
   "repository": {
     "type": "git",
@@ -27,21 +27,25 @@
     "url": "https://github.com/sarosia/apper/issues"
   },
   "homepage": "https://github.com/sarosia/apper#readme",
+  "exports": {
+    ".": "./index.js",
+    "./test": "./lib/test-helpers.js",
+    "./*": "./*"
+  },
   "dependencies": {
     "@sarosia/e": "github:sarosia/e",
     "@sarosia/notabledb": "github:sarosia/notabledb",
+    "chai": "^4.5.0",
+    "chai-as-promised": "^7.1.2",
+    "chai-http": "^4.4.0",
     "eslint": "^10.11.0",
     "express": "^4.17.1",
     "globals": "^17.12.0",
     "googleapis": "^107.0.0",
+    "mocha": "^10.8.2",
     "rc": "^1.2.8",
     "uikit": "^3.7.0",
     "winston": "^3.3.3",
     "winston-daily-rotate-file": "^4.5.0"
-  },
-  "devDependencies": {
-    "chai": "^4.3.4",
-    "chai-http": "^4.3.0",
-    "mocha": "^9.0.1"
   }
 }

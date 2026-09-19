@@ -335,4 +335,23 @@ describe('Apper', () => {
       expect(exitCode).to.equal(0);
     });
   });
+
+  describe('Apper.test', () => {
+    it('provides pre-configured chai with chai-as-promised and chai-http', async () => {
+      expect(Apper.test).to.exist;
+      expect(Apper.test.expect).to.exist;
+      expect(Apper.test.assert).to.exist;
+      expect(Apper.test.chai).to.exist;
+
+      // Verify chai-as-promised is loaded
+      await expect(Promise.resolve('apper')).to.eventually.equal('apper');
+    });
+
+    it('resolves mocha executable in testRunner.getMochaBin', () => {
+      expect(Apper.testRunner).to.exist;
+      const bin = Apper.testRunner.getMochaBin();
+      expect(bin).to.be.a('string');
+      expect(bin).to.include('mocha');
+    });
+  });
 });

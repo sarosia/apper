@@ -6,6 +6,8 @@ Apper.Logger = require('./lib/logger.js');
 Apper.NotableStore = require('./lib/store.js');
 Apper.Store = Apper.NotableStore;
 Apper.lint = require('./lib/lint.js');
+Apper.test = require('./lib/test-helpers.js');
+Apper.testRunner = require('./lib/test.js');
 Apper.express = require('express');
 
 module.exports = Apper;
