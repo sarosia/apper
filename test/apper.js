@@ -360,4 +360,75 @@ describe('Apper', () => {
       expect(bin).to.include('mocha');
     });
   });
+
+  describe('Apper Lifecycle (start, stop, onStop)', () => {
+    it('runs onStop hooks and closes server on stop()', async () => {
+      let stopHookCalled = false;
+      let stopSignalReceived = null;
+      let serverClosed = false;
+
+      const apper = new Apper('teststopapp', (ctx) => {
+        ctx.status = 'active';
+      }, {
+        handleSignals: false,
+      });
+
+      apper.getExpress().listen = () => ({
+        close: (cb) => {
+          serverClosed = true;
+          if (cb) cb();
+        },
+      });
+
+      apper.onStop((context, signal) => {
+        stopHookCalled = true;
+        stopSignalReceived = signal;
+        expect(context.status).to.equal('active');
+      });
+
+      await apper.start();
+      expect(apper.getServer()).to.exist;
+
+      await apper.stop('SIGTERM');
+      expect(stopHookCalled).to.be.true;
+      expect(stopSignalReceived).to.equal('SIGTERM');
+      expect(serverClosed).to.be.true;
+      expect(apper.getServer()).to.be.null;
+    });
+  });
+
+  describe('Apper Google Helpers', () => {
+    it('exports google and provides getGoogleAuth with scope shortcuts', () => {
+      expect(Apper.google).to.exist;
+      expect(Apper.getGoogleAuth).to.be.a('function');
+      expect(Apper.initGoogleAuth).to.be.a('function');
+      expect(Apper.getGoogleService).to.be.a('function');
+
+      const authCal = Apper.getGoogleAuth('calendar');
+      expect(authCal.scopes).to.deep.equal(['https://www.googleapis.com/auth/calendar']);
+
+      const authMulti = Apper.getGoogleAuth(['drive', 'calendar']);
+      expect(authMulti.scopes).to.deep.equal([
+        'https://www.googleapis.com/auth/drive',
+        'https://www.googleapis.com/auth/calendar',
+      ]);
+    });
+
+    it('attaches google helpers to context', () => {
+      let contextCaptured = null;
+      new Apper('testctxgoogle', (ctx) => {
+        contextCaptured = ctx;
+      });
+
+      expect(contextCaptured.google).to.exist;
+      expect(contextCaptured.getGoogleAuth).to.be.a('function');
+      expect(contextCaptured.initGoogleAuth).to.be.a('function');
+      expect(contextCaptured.getGoogleService).to.be.a('function');
+    });
+
+    it('getGoogleService rejects with clear error for unknown service', async () => {
+      await expect(Apper.getGoogleService('unknown_service'))
+          .to.be.rejectedWith('Unknown Google service: "unknown_service"');
+    });
+  });
 });

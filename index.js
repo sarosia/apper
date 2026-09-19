@@ -8,6 +8,10 @@ Apper.Store = Apper.NotableStore;
 Apper.lint = require('./lib/lint.js');
 Apper.test = require('./lib/test-helpers.js');
 Apper.testRunner = require('./lib/test.js');
+Apper.google = require('./lib/google.js').google;
+Apper.getGoogleAuth = require('./lib/google.js').getGoogleAuth;
+Apper.initGoogleAuth = require('./lib/google.js').initGoogleAuth;
+Apper.getGoogleService = require('./lib/google.js').getGoogleService;
 Apper.express = require('express');
 
 module.exports = Apper;
