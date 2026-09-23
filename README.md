@@ -16,8 +16,9 @@ Apper gets your web applications running in seconds by eliminating boilerplate f
 - 🎨 **Bundled UIkit & `@sarosia/e`**: Automatically serves UIkit CSS/JS and `@sarosia/e` (`/e.js`) without manual build steps or static path configuration.
 - 🪵 **Production Logging**: Winston logger with daily rotating JSON log files (`app-%DATE%.log`), custom `logDir` with tilde expansion, and colorized development console output.
 - ⚙️ **Hierarchical Configuration**: Powered by `rc` for seamless merging of defaults, configuration files (`.<appname>rc`), environment variables, and CLI flags.
+- 🛡️ **Dual-Port Admin Interface (`adminPort`)**: Optionally bind a dedicated admin port that skips authentication middleware, ideal for private network access behind a firewall.
 - 🧩 **Context Architecture**: Injects a shared `Context` holding logger, configuration, and custom application services into every route handler.
-- 🔄 **Lifecycle Hooks**: Register asynchronous startup hooks with `app.onStart((ctx) => ...)`.
+- 🔄 **Lifecycle Hooks**: Register asynchronous startup and shutdown hooks with `app.onStart((ctx) => ...)` and `app.onStop((ctx, signal) => ...)`.
 - 📁 **Path Utilities**: `Apper.resolvePath()` for expanding `~` and normalizing cross-platform paths.
 
 ---
@@ -288,11 +289,16 @@ ctx.logger.error('Database connection failed', err);
 
 ### Apper Instance Methods
 
-- **`app.start()`**: Starts the Express server and executes all registered `onStart` hooks. Returns `Promise<http.Server>`.
+- **`app.start()`**: Starts the Express server, starts adminServer (if `adminPort` is configured), and executes all registered `onStart` hooks. Returns `Promise<http.Server>`.
+- **`app.stop([signal])`**: Executes all registered `onStop` hooks and closes both the main and admin HTTP servers.
 - **`app.onStart(hook)`**: Registers an async/sync callback `async (ctx) => {}` to run upon startup.
+- **`app.onStop(hook)`**: Registers an async/sync callback `async (ctx, signal) => {}` to run upon shutdown.
 - **`app.get(route, handler)`**: Registers a GET handler `(ctx, req, res, next) => {}`.
 - **`app.post(route, handler)`**: Registers a POST handler `(ctx, req, res, next) => {}`.
 - **`app.use(...middleware)`**: Mounts Express middleware.
+- **`app.getServer()`**: Returns the primary HTTP server instance.
+- **`app.getAdminServer()`**: Returns the admin HTTP server instance (or null if not configured).
+- **`app.getAdminPort()`**: Returns the bound admin port number (or null if not configured).
 - **`app.getExpress()`**: Returns the underlying Express application instance.
 - **`app.getContext()`**: Returns the shared `Context`.
 - **`app.getAuth()`**: Returns the `AuthManager` instance.

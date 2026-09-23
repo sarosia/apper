@@ -287,5 +287,80 @@ describe('Apper Auth', () => {
           expect(resMe).to.have.status(200);
           expect(resMe.body.authenticated).to.be.false;
         });
+
+    it('skips auth middleware on adminPort while main port requires auth',
+        async () => {
+          const apper = new Apper('adminporttest', () => {}, {
+            port: 0,
+            adminPort: 0,
+            auth: {
+              enabled: true,
+              clientId: 'mock-client-id',
+              clientSecret: 'mock-client-secret',
+            },
+          });
+
+          apper.get('/api/data', (ctx, req, res) => {
+            res.json({
+              status: 'OK',
+              isAdmin: Boolean(req.isAdmin),
+            });
+          });
+
+          const server = await apper.start();
+          const mainPort = server.address().port;
+          const adminPort = apper.getAdminPort();
+
+          expect(adminPort).to.be.a('number');
+          expect(adminPort).to.not.equal(mainPort);
+          expect(apper.getAdminServer()).to.not.be.null;
+
+          try {
+            // Main port requires auth
+            const mainRes = await fetch(
+                `http://localhost:${mainPort}/api/data`,
+            );
+            expect(mainRes.status).to.equal(401);
+
+            // Admin port skips auth
+            const adminRes = await fetch(
+                `http://localhost:${adminPort}/api/data`,
+            );
+            expect(adminRes.status).to.equal(200);
+            const adminBody = await adminRes.json();
+            expect(adminBody.status).to.equal('OK');
+            expect(adminBody.isAdmin).to.be.true;
+
+            // Admin port /auth/me returns 200 unauthenticated
+            const meRes = await fetch(
+                `http://localhost:${adminPort}/auth/me`,
+            );
+            expect(meRes.status).to.equal(200);
+            const meBody = await meRes.json();
+            expect(meBody.authenticated).to.be.false;
+            expect(meBody.isAdmin).to.be.true;
+
+            // Admin port /auth/config reports disabled auth
+            const configRes = await fetch(
+                `http://localhost:${adminPort}/auth/config`,
+            );
+            expect(configRes.status).to.equal(200);
+            const configBody = await configRes.json();
+            expect(configBody.enabled).to.be.false;
+            expect(configBody.isAdmin).to.be.true;
+
+            // Admin port /login redirects to root
+            const loginRes = await fetch(
+                `http://localhost:${adminPort}/login`,
+                {redirect: 'manual'},
+            );
+            expect(loginRes.status).to.equal(302);
+            expect(loginRes.headers.get('location')).to.equal('/');
+          } finally {
+            await apper.stop();
+            expect(apper.getAdminServer()).to.be.null;
+            expect(apper.getServer()).to.be.null;
+          }
+        });
   });
 });
