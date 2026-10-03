@@ -395,6 +395,44 @@ describe('Apper', () => {
       expect(serverClosed).to.be.true;
       expect(apper.getServer()).to.be.null;
     });
+
+    it('exits process with code 1 and cleans up on listen error', async () => {
+      const originalExit = process.exit;
+      let exitCode = null;
+      process.exit = (code) => {
+        exitCode = code;
+      };
+
+      try {
+        const apper = new Apper('testlistenexit', () => {}, {
+          handleSignals: false,
+        });
+
+        apper.getExpress().listen = () => {
+          const fakeEmitter = {
+            listening: false,
+            once: (event, cb) => {
+              if (event === 'error') {
+                process.nextTick(() => cb(new Error('listen EADDRINUSE :::8080')));
+              }
+            },
+            close: (cb) => {
+              if (cb) cb();
+            },
+          };
+          return fakeEmitter;
+        };
+
+        try {
+          await apper.start();
+        } catch (_) {}
+
+        expect(exitCode).to.equal(1);
+        expect(apper.getServer()).to.be.null;
+      } finally {
+        process.exit = originalExit;
+      }
+    });
   });
 
   describe('Apper Google Helpers', () => {
